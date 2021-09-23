@@ -1,0 +1,67 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: Create EC2 instance
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+    - Label:
+        default: AWS Parameters
+      Parameters:
+        - EC2KeyName
+        - EC2InstanceType
+        - EC2SecurityGroup
+        - Subnet
+    ParameterLabels:
+      EC2SecurityGroup:
+        default: EC2 Security Group
+      EC2InstanceType:
+        default: Instance Type
+      EC2KeyName:
+        default: Existing Key Pair
+      Subnet:
+        default: PublicSubnet
+
+Parameters:
+  EC2SecurityGroup:
+    Description: Select the EC2 security group.
+    Type: AWS::EC2::SecurityGroup::Id
+  EC2InstanceType:
+    AllowedValues:
+    - t3.nano
+    - t3.micro
+    - t3.small
+    - t3.medium
+    - t3.large
+    - t3.xlarge
+    - t3.2xlarge
+    ConstraintDescription: Must be a valid Amazon EC2 instance type.
+    Default: t3.nano
+    Description: EC2 instance type.
+    Type: String
+  EC2KeyName:
+    Description: Name of an EC2 KeyPair. Your instances will launch with this KeyPair.
+    Type: AWS::EC2::KeyPair::KeyName
+  LatestAmiId :
+    Type : AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+  Subnet:
+    Type: String
+
+Resources:
+  MyEC2Instance: 
+    Type: AWS::EC2::Instance
+    Properties: 
+      ImageId: !Ref LatestAmiId
+      KeyName: !Ref EC2KeyName
+      InstanceType: !Ref EC2InstanceType
+      SecurityGroupIds: 
+        - !Ref EC2SecurityGroup
+      SubnetId: !Ref Subnet
+
+Outputs:
+  MyEC2InstanceId:
+    Value: !Ref MyEC2Instance
+  PublicIp:
+    Value: !GetAtt MyEC2Instance.PublicIp
